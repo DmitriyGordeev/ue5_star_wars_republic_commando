@@ -6,6 +6,7 @@
 #include "BaseNPCCharacter.h"
 #include "BaseCloneCharacter.generated.h"
 
+
 /**
  * 
  */
@@ -16,10 +17,19 @@ class REPUBLICCOMMANDO_API ABaseCloneCharacter : public ABaseNPCCharacter
 
 public:
 	ABaseCloneCharacter();
+
+	
+	virtual FVariant GetSelectedEQSLocation();
+
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	bool InCover;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	AActor* TargetEnemy;
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
+	TArray<ABaseCloneCharacter*> TeamMembers;
+
+	
 };
