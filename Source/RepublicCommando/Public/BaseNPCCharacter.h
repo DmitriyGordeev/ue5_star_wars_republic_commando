@@ -13,5 +13,9 @@ UCLASS(Blueprintable)
 class REPUBLICCOMMANDO_API ABaseNPCCharacter : public ARCCharacter
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
+	AActor* TargetEnemy;
 	
 };

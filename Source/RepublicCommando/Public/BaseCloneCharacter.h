@@ -24,12 +24,8 @@ public:
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	bool InCover;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
-	AActor* TargetEnemy;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	TArray<ABaseCloneCharacter*> TeamMembers;
-
 	
 };
