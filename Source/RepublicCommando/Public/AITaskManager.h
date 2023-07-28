@@ -32,7 +32,7 @@ public:
 
 	/* Find next relevant task to execute */
 	UFUNCTION(BlueprintCallable)
-	virtual void Recalculate();
+	virtual void Recalculate(bool ShouldIgnoreCooldown = false);
 	
 	/* Asks current task for interruption - it's up to Task to respond:
 	 * if task hasn't responded - it's continue running until marked Completed */
@@ -76,6 +76,17 @@ public:
 	
 	bool CheckRecalculateCooldownIsReady();
 
+	/** Extracts milliseconds part of current Date every hour
+	 * ms + 1000 * s + 60 * 1000 * min */
+	static int32 GetCurrentMilliseconds();
+	
+	/** Defines how often Recalculate() function can fire */
+	UPROPERTY(BlueprintReadWrite, meta=(ClampMin=0, UIMin=0))
+	int32 TaskRecalculationFrequencyMs {1000};
+
+// protected:
+	// UAIBaseTask* IdentifyWinner();
+	
 protected:
 	UPROPERTY(BlueprintReadWrite)
 	TArray<UAIBaseTask*> Tasks;
@@ -88,5 +99,5 @@ protected:
 	// TODO: пояснить
 	TMap<TTuple<int, int>, int> PriorityMatrix;
 	
-	int64 LastRecalcUnixTime {0};
+	int32 LastRecalcUnixTimeMs {0};
 };

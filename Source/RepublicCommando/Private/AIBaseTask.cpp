@@ -10,7 +10,6 @@
 void UAIBaseTask::Start()
 {
 	Reset();
-	UE_LOG(LogTemp, Log, TEXT("UAIBaseTask::Start()"));
 	bRunning = true;
 	OnExecute(GetAIController());
 }
@@ -21,12 +20,6 @@ float UAIBaseTask::FindProba_Implementation(AAIController* Controller, UObject* 
 	return Proba;
 }
 
-// float UAIBaseTask::FindProba_Implementation(AAIController* Controller, UObject* ContextData)
-// {
-// 	Proba = 1.0f;
-// 	return Proba;
-// }
-
 void UAIBaseTask::Reset()
 {
 	bRunning = false;
@@ -35,18 +28,27 @@ void UAIBaseTask::Reset()
 	UE_LOG(LogTemp, Log, TEXT("Reset() task %s"), *GetName());
 }
 
+bool UAIBaseTask::IsReadyToBeWinner(int32 NewTimeMs) const
+{
+	return NewTimeMs - LastWinningTimeMs > WinnerCooldownTimeMs;
+}
+
+void UAIBaseTask::SelectAsWinner(int32 NewTimeMs)
+{
+	UE_LOG(LogTemp, Log, TEXT("Task %s selected as winner at %i"), *GetName(), NewTimeMs);
+	LastWinningTimeMs = NewTimeMs;
+}
+
 float UAIBaseTask::ExtractProba(AAIController* Controller, UObject* ContextData)
 {
 	Proba = FindProba(Controller, ContextData);
 	Proba = Proba > 1.0f ? 1.0f : Proba;
 	Proba = Proba < 0.0f ? 0.0f : Proba;
-	UE_LOG(LogTemp, Log, TEXT("Clamped Proba = %f"), Proba);
 	return Proba;
 }
 
 void UAIBaseTask::Tick(float DeltaTime)
 {
-	UE_LOG(LogTemp, Log, TEXT("UAIBaseTask Tick"));
 	// TODO: if (!Interrupted() and !Completed()) ?
 	OnTick(GetAIController());
 }
@@ -74,21 +76,17 @@ bool UAIBaseTask::IsTickableWhenPaused() const
 
 void UAIBaseTask::MarkCompleted()
 {
+	bRunning = false;
 	bCompleted = true;
-	UE_LOG(LogTemp, Log, TEXT("Task marked as completed"));
-	
-	// TODO: notify up to TaskManager ?
+	UE_LOG(LogTemp, Log, TEXT("%s Task marked as completed"), *GetName());
 }
-
 
 void UAIBaseTask::MarkInterrupted()
 {
+	bRunning = false;
 	bInterrupted = true;
-	UE_LOG(LogTemp, Log, TEXT("Task marked as interrupted"));
-	
-	// TODO: notify up to TaskManager ?
+	UE_LOG(LogTemp, Log, TEXT("%s Task marked as interrupted"), *GetName());
 }
-
 
 TStatId UAIBaseTask::GetStatId() const
 {
@@ -108,7 +106,6 @@ UWorld* UAIBaseTask::GetWorld() const
 		AActor* Outer = GetTypedOuter<AActor>();
 		if (Outer != nullptr)
 		{
-			UE_LOG(LogTemp, Display, TEXT("AIBaseTask::GetWorld() => Sucessfully GetWorld()"));
 			return Outer->GetWorld();
 		}
 	}
@@ -118,22 +115,27 @@ UWorld* UAIBaseTask::GetWorld() const
 	return nullptr;
 }
 
+bool UAIBaseTask::IsRunning() const
+{
+	UE_LOG(LogTemp, Log, TEXT("%s IsRunning() = %i"), *GetName(), bRunning);
+	return bRunning;
+}
 
 bool UAIBaseTask::IsCompleted() const
 {
-	UE_LOG(LogTemp, Log, TEXT("IsCompleted() = %i"), bCompleted);
+	UE_LOG(LogTemp, Log, TEXT("%s IsCompleted() = %i"), *GetName(), bCompleted);
 	return bCompleted;
 }
 
 bool UAIBaseTask::IsInterrupted() const
 {
-	UE_LOG(LogTemp, Log, TEXT("IsInterrupted() = %i"), bInterrupted);
+	UE_LOG(LogTemp, Log, TEXT("%s IsInterrupted() = %i"), *GetName(), bInterrupted);
 	return bInterrupted;
 }
 
 float UAIBaseTask::GetProba() const
 {
-	UE_LOG(LogTemp, Log, TEXT("UAIBaseTask::GetProba() = %f"), Proba);
+	UE_LOG(LogTemp, Log, TEXT("%s GetProba() = %f"), *GetName(), Proba);
 	return Proba;
 }
 

@@ -20,31 +20,35 @@ void UAITaskManager::Start()
 }
 
 // TODO: нужно отрефакторить
-void UAITaskManager::Recalculate()
+void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 {
 	UE_LOG(LogTemp, Log, TEXT("TaskManager::Recalculate()"));
 	if (Tasks.IsEmpty())
 		return;
 	
-	if (!CheckRecalculateCooldownIsReady())
+	if (!ShouldIgnoreCooldown && !CheckRecalculateCooldownIsReady())
 	{
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("LastRecalcUnitTime = %lld"), LastRecalcUnixTime);
-
-	LastRecalcUnixTime = FDateTime::Now().ToUnixTimestamp();
+	LastRecalcUnixTimeMs = GetCurrentMilliseconds();
+	UE_LOG(LogTemp, Log, TEXT("LastRecalcUnixTimeMs = %i"), LastRecalcUnixTimeMs);
 	
 	UAIBaseTask* Winner = nullptr;
 	float MaxProbaSoFar = -1.0f;
 	float Proba = 0.0f;
 	int WinnerIndex = -1;
 	
-	// TODO: распараллелить ? (могут быть проблемы, если FindProba пишет в ContextData)
+	// TODO: распараллелить ? (могут быть проблемы, если FindProba пишет в ContextData) - потестить!
 	for(auto i = 0; i < Tasks.Num(); i++)
 	{
+		if (!Tasks[i]->IsReadyToBeWinner(GetCurrentMilliseconds()))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Task (%s) => IsReadyToBeWinner() = %i"), *Tasks[i]->GetName(), false);
+			continue;
+		}
+		
 		Proba = Tasks[i]->ExtractProba(AIOwner.Get(), ContextData);
-
 		if (Proba > MaxProbaSoFar)
 		{
 			MaxProbaSoFar = Proba;
@@ -70,6 +74,9 @@ void UAITaskManager::Recalculate()
 			}
 		}
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Winner loop selected %s"), *Winner->GetName());
+
 	
 	if (!Winner)
 	{
@@ -83,23 +90,29 @@ void UAITaskManager::Recalculate()
 		return;
 	}
 	
-	if (ActiveTask && Winner == ActiveTask)
-	{
-		if (ActiveTask->bShouldRestartIfWinnerAgain)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Restaring the same Task because it's a winner again"));
-			ActiveTask->Reset();
-			ActiveTask->Start();
-		}
-		return;
-	}
-	
 	if (ActiveTask)
-		ActiveTask->Reset();
+	{
+		if (Winner == ActiveTask)
+		{
+			if (ActiveTask->IsRunning() && !ActiveTask->bShouldRestartIfWinnerAgain)
+				return;
+		}
+
+		if (ActiveTask->IsRunning())
+		{
+			if (!TryInterruptActiveTask())
+				return;
+		}
+		else if (ActiveTask->IsCompleted() || ActiveTask->IsInterrupted())
+		{
+			ActiveTask->Reset();
+		}
+	}
 	
 	UE_LOG(LogTemp, Log, TEXT("Winner Task Name = %s"), *Winner->GetName());
 	
 	ActiveTask = Winner;
+	Winner->SelectAsWinner(GetCurrentMilliseconds());
 	Winner->Start();
 }
 
@@ -134,11 +147,10 @@ void UAITaskManager::Tick(float DeltaTime)
 	if (!bStarted)
 		return;
 
-	if (ActiveTask)
-		UE_LOG(LogTemp, Log, TEXT("TaskManager tick | active task name = %s"), *ActiveTask->GetName());
-
 	if (!ActiveTask)
 		return;
+	
+	UE_LOG(LogTemp, Log, TEXT("TaskManager tick | active task name = %s"), *ActiveTask->GetName());
 
 	if (ActiveTask->IsCompleted())
 	{
@@ -152,10 +164,11 @@ void UAITaskManager::Tick(float DeltaTime)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Task Interrupted"));
 			bWaitingForActiveTaskInterrupted = false;
-			Recalculate();
+			
+			// avoid cooldown check to catch just interrupted task as soon as possible
+			Recalculate(true);	
 		}
 	}
-	
 }
 
 bool UAITaskManager::IsTickable() const
@@ -213,11 +226,18 @@ void UAITaskManager::AddPairWisePriority(int HigherPriorityTaskIndex, int LowerP
 
 bool UAITaskManager::CheckRecalculateCooldownIsReady()
 {
-	// TODO: перевести в милисекунды ? и добавить параметр частоты
-	if (LastRecalcUnixTime == 0)
+	if (LastRecalcUnixTimeMs == 0)
 	{
-		LastRecalcUnixTime = FDateTime::Now().ToUnixTimestamp();
+		LastRecalcUnixTimeMs = GetCurrentMilliseconds();
 		return true;
 	}
-	return (FDateTime::Now().ToUnixTimestamp() - LastRecalcUnixTime) > 1;
+	return (GetCurrentMilliseconds() - LastRecalcUnixTimeMs) > TaskRecalculationFrequencyMs;
+}
+
+int32 UAITaskManager::GetCurrentMilliseconds()
+{
+	const auto CurrentTime = FDateTime::Now();
+	return CurrentTime.GetMillisecond() +
+			CurrentTime.GetSecond() * 1000 +
+			CurrentTime.GetMinute() * 60 * 1000;
 }

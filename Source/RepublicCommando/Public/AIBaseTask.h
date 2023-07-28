@@ -57,6 +57,7 @@ public:
 	virtual TStatId GetStatId() const override;
 	virtual UWorld* GetWorld() const override;
 
+	virtual bool IsRunning() const;
 	virtual bool IsCompleted() const;
 	virtual bool IsInterrupted() const;
 
@@ -76,6 +77,12 @@ public:
 	 * */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool bShouldRestartIfWinnerAgain {true};
+
+	/** Imposes cooldown on the task -
+	 * prevents from picking the same Task too often if necessary */
+	bool IsReadyToBeWinner(int32 NewTimeMs) const;
+	
+	void SelectAsWinner(int32 NewTimeMs);
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -90,4 +97,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bInterrupted {false};
 	float Proba {0.0f};
+	
+	/** How often can be picked as a winner, specified in milliseconds */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ClampMin=0, UIMin=0))
+	int32 WinnerCooldownTimeMs {0};
+	
+	int32 LastWinningTimeMs;
 };
