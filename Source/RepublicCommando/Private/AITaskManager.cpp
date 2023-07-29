@@ -49,6 +49,8 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 		}
 		
 		Proba = Tasks[i]->ExtractProba(AIOwner.Get(), ContextData);
+		UE_LOG(LogTemp, Log, TEXT("%s : Proba = %f"), *Tasks[i]->GetName(), Proba);
+		
 		if (Proba > MaxProbaSoFar)
 		{
 			MaxProbaSoFar = Proba;
@@ -57,26 +59,37 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 		}
 		else if (Proba == MaxProbaSoFar)
 		{
-			auto Pair = PriorityMatrix.Find(TTuple<int, int>(i, WinnerIndex));
-			if (Pair && *Pair < 0)
-			{
-				UE_LOG(LogTemp, Log, TEXT("SORTING with PriorityMatrix = %i"), *Pair);
-				continue;
-			}
+			auto IndexPair = PriorityMatrix.Find(TTuple<int, int>(i, WinnerIndex));
+			
+			UE_LOG(LogTemp, Log, TEXT("i1 = %i, i2 = %i, IndexPair = %p"), i, WinnerIndex, IndexPair);
 
-			// Randomly choose between two tasks if they have equal probabilities
-			if (FMath::FRand() > 0.5f)
+			
+			if (IndexPair)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Randomly choosing new task"));
+				UE_LOG(LogTemp, Log, TEXT("Sorting with PriorityMatrix = %i"), *IndexPair);
+				if (*IndexPair < 0)
+					continue;
+				
 				MaxProbaSoFar = Proba;
 				Winner = Tasks[i];
 				WinnerIndex = i;
 			}
+			else
+			{
+				// Randomly choose between two tasks if they have equal probabilities
+				if (FMath::FRand() > 0.5f)
+				{
+					UE_LOG(LogTemp, Log, TEXT("Randomly choosing new task"));
+					MaxProbaSoFar = Proba;
+					Winner = Tasks[i];
+					WinnerIndex = i;
+				}
+			}
+			
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Winner loop selected %s"), *Winner->GetName());
-
+	UE_LOG(LogTemp, Log, TEXT("Loop selected a winner = %s"), *Winner->GetName());
 	
 	if (!Winner)
 	{
@@ -124,7 +137,9 @@ bool UAITaskManager::TryInterruptActiveTask()
 		return true;
 
 	if (AIOwner.IsValid())
-		ActiveTask->OnInterruptedResponse(AIOwner.Get());
+	{
+		ActiveTask->AskInterrupt(AIOwner.Get());
+	}
 
 	return ActiveTask->IsInterrupted();
 }

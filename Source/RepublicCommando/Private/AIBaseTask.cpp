@@ -25,6 +25,7 @@ void UAIBaseTask::Reset()
 	bRunning = false;
 	bCompleted = false;
 	bInterrupted = false;
+	bAskedForInterruption = false;
 	UE_LOG(LogTemp, Log, TEXT("Reset() task %s"), *GetName());
 }
 
@@ -45,6 +46,12 @@ float UAIBaseTask::ExtractProba(AAIController* Controller, UObject* ContextData)
 	Proba = Proba > 1.0f ? 1.0f : Proba;
 	Proba = Proba < 0.0f ? 0.0f : Proba;
 	return Proba;
+}
+
+void UAIBaseTask::AskInterrupt(AAIController* Controller)
+{
+	bAskedForInterruption = true;
+	OnInterruptedResponse(Controller);
 }
 
 void UAIBaseTask::Tick(float DeltaTime)
@@ -86,6 +93,7 @@ void UAIBaseTask::MarkInterrupted()
 	bRunning = false;
 	bInterrupted = true;
 	UE_LOG(LogTemp, Log, TEXT("%s Task marked as interrupted"), *GetName());
+	bAskedForInterruption = false;
 }
 
 TStatId UAIBaseTask::GetStatId() const

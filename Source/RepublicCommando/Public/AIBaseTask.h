@@ -42,6 +42,9 @@ public:
 	 * this function forces to set Proba field after calculation, which BP user can forget to do */
 	UFUNCTION()
 	float ExtractProba(AAIController* Controller, UObject* ContextData);
+
+	UFUNCTION()
+	void AskInterrupt(AAIController* Controller);
 	
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsTickable() const override;
@@ -83,6 +86,8 @@ public:
 	bool IsReadyToBeWinner(int32 NewTimeMs) const;
 	
 	void SelectAsWinner(int32 NewTimeMs);
+
+	
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -97,6 +102,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bInterrupted {false};
 	float Proba {0.0f};
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bAskedForInterruption {false};
 	
 	/** How often can be picked as a winner, specified in milliseconds */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ClampMin=0, UIMin=0))
