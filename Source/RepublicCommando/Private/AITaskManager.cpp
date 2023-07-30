@@ -60,10 +60,7 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 		else if (Proba == MaxProbaSoFar)
 		{
 			auto IndexPair = PriorityMatrix.Find(TTuple<int, int>(i, WinnerIndex));
-			
 			UE_LOG(LogTemp, Log, TEXT("i1 = %i, i2 = %i, IndexPair = %p"), i, WinnerIndex, IndexPair);
-
-			
 			if (IndexPair)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Sorting with PriorityMatrix = %i"), *IndexPair);
@@ -118,6 +115,7 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 		}
 		else if (ActiveTask->IsCompleted() || ActiveTask->IsInterrupted())
 		{
+			UE_LOG(LogTemp, Log, TEXT("%s.Reset()"), *ActiveTask->GetName());
 			ActiveTask->Reset();
 		}
 	}
