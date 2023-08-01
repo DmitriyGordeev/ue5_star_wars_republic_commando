@@ -18,7 +18,7 @@ ABaseCloneCharacter::ABaseCloneCharacter()
  * @brief Returns location of selected EQS point, or false if wasn't selected
  * @return FVariant : FVector or bool in case BB value wasn't set or other error
  */
-FVariant ABaseCloneCharacter::GetSelectedEQSLocation()
+FVariant ABaseCloneCharacter::GetSelectedEQSLocationFromBB()
 {
 	const UBlackboardComponent* Blackboard = UAIBlueprintHelperLibrary::GetBlackboard(this);
 	const FName BBVectorName(TEXT("EQS_Point"));
@@ -62,4 +62,9 @@ FVariant ABaseCloneCharacter::GetSelectedEQSLocation()
 	FVector Loc = Blackboard->GetValueAsVector(BBVectorName);
 	UE_LOG(LogTemp, Log, TEXT("[ABaseCloneCharacter] EQS_Point = %s"), *Loc.ToString());
 	return Loc;
+}
+
+FVector ABaseCloneCharacter::GetSelectedEQSLocation() const
+{
+	return EQSLocation;
 }

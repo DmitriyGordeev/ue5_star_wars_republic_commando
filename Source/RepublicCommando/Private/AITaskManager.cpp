@@ -4,8 +4,8 @@
 #include "AIBaseTask.h"
 
 
-#include "SAdvancedTransformInputBox.h"
-#include "Engine/RendererSettings.h"
+// #include "SAdvancedTransformInputBox.h"
+// #include "Engine/RendererSettings.h"
 #include "GenericPlatform/GenericPlatformProcess.h"
 #include "Kismet/KismetSystemLibrary.h"
 

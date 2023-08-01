@@ -17,15 +17,19 @@ class REPUBLICCOMMANDO_API ABaseCloneCharacter : public ABaseNPCCharacter
 
 public:
 	ABaseCloneCharacter();
-
 	
-	virtual FVariant GetSelectedEQSLocation();
-
+	virtual FVariant GetSelectedEQSLocationFromBB();
 	
+	virtual FVector GetSelectedEQSLocation() const;
+
+	// TODO: переместить в protected ?
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	bool InCover;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	TArray<ABaseCloneCharacter*> TeamMembers;
-	
+
+protected:
+	UPROPERTY(BlueprintReadWrite)
+	FVector EQSLocation;
 };
