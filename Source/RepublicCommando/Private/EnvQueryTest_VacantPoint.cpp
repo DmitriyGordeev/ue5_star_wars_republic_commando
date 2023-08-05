@@ -72,9 +72,7 @@ void UEnvQueryTest_VacantPoint::RunTest(FEnvQueryInstance& QueryInstance) const
 		if (CloneCharacter->TeamMembers.IsEmpty())
 		{
 			UE_LOG(LogTemp, Display, TEXT("[VacantPoint::RunTest()] Team is Empty"));
-			
-			// TODO: надо убрать хардкод из Score:
-			ItrEQSPoint.SetScore(TestPurpose, FilterType, 2, 1, 3);
+			ItrEQSPoint.ForceItemState(EEnvItemStatus::Passed);
 		}
 		else
 		{
