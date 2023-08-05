@@ -24,4 +24,7 @@ class REPUBLICCOMMANDO_API UEnvQueryTest_VacantPoint : public UEnvQueryTest
 
 	virtual FText GetDescriptionTitle() const override;
 	virtual FText GetDescriptionDetails() const override;
+
+protected:
+	TSharedPtr<FCriticalSection> Guard;
 };

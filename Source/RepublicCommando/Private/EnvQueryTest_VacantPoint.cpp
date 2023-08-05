@@ -2,8 +2,9 @@
 
 
 #include "EnvQueryTest_VacantPoint.h"
-
 #include "BaseCloneCharacter.h"
+#include "HAL/ThreadManager.h"
+// #include "Misc/ScopeLock.h"
 #include "ParticleHelper.h"
 #include "EnvironmentQuery/Items/EnvQueryItemType_VectorBase.h"
 #include "EnvironmentQuery/Contexts/EnvQueryContext_Querier.h"
@@ -14,6 +15,7 @@ UEnvQueryTest_VacantPoint::UEnvQueryTest_VacantPoint(const FObjectInitializer& O
 	// Setup context object
 	Querier = UEnvQueryContext::StaticClass();
 	Cost = EEnvTestCost::Low;
+	Guard = MakeShared<FCriticalSection>();
 
 	// Specify item type (Actor, Vector, todo: изменить?)
 	ValidItemType = UEnvQueryItemType_VectorBase::StaticClass();
@@ -49,15 +51,7 @@ void UEnvQueryTest_VacantPoint::RunTest(FEnvQueryInstance& QueryInstance) const
 		UE_LOG(LogTemp, Display, TEXT("[VacantPoint::RunTest()] CloneCharacter is not valid"));
 		return;
 	}
-
-	// Bind min-max scoring data (this is unused)
-	// TODO: надо убрать, потому что скоринг не используется
-	FloatValueMin.BindData(QueryOwner, QueryInstance.QueryID);
-	float MinThresholdValue = FloatValueMin.GetValue();
-
-	FloatValueMax.BindData(QueryOwner, QueryInstance.QueryID);
-	float MaxThresholdValue = FloatValueMax.GetValue();
-
+	
 	
 	TArray<FVector> ContextLocations;
 	if (!QueryInstance.PrepareContext(Querier, ContextLocations))
@@ -66,58 +60,79 @@ void UEnvQueryTest_VacantPoint::RunTest(FEnvQueryInstance& QueryInstance) const
 		return;
 	}
 
+	
+	FScopeLock Lock(Guard.Get());
+	
 	for (FEnvQueryInstance::ItemIterator ItrEQSPoint(this, QueryInstance); ItrEQSPoint; ++ItrEQSPoint)
 	{
 		const FVector EQSItemLocation = GetItemLocation(QueryInstance, ItrEQSPoint.GetIndex());
 		if (CloneCharacter->TeamMembers.IsEmpty())
 		{
-			UE_LOG(LogTemp, Display, TEXT("[VacantPoint::RunTest()] Team is Empty"));
+			UE_LOG(LogTemp, Display, TEXT("[VacantPoint::RunTest()] %s : Team is Empty | point has passed %s"),
+				*CloneCharacter->GetName(),
+				*EQSItemLocation.ToString());
 			ItrEQSPoint.ForceItemState(EEnvItemStatus::Passed);
+			break;
+		}
+		
+		bool CurrentPointPassed = true;
+		
+		for(auto it = CloneCharacter->TeamMembers.begin();
+			it != CloneCharacter->TeamMembers.end();
+			++it)
+		{
+			const ABaseCloneCharacter* TeamMember = *it;
+			if (TeamMember == nullptr)
+				continue;
+			
+			FVector TeamMemberEQSLocation = TeamMember->GetSelectedEQSLocation();
+			UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s (checking location %s)| TeamMember = %s -> EQSLocation = %s"),
+				*CloneCharacter->GetName(),
+				*EQSItemLocation.ToString(),
+				*TeamMember->GetName(),
+				*TeamMemberEQSLocation.ToString());
+			
+			const float DistanceToOtherCloneEQS = (EQSItemLocation - TeamMemberEQSLocation).Length();
+			const float DistanceToOtherClonePos = (EQSItemLocation - TeamMember->GetActorLocation()).Length();
+			
+			UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | Distance = %f, TeamMember = %s"),
+				*CloneCharacter->GetName(),
+				DistanceToOtherCloneEQS,
+				*TeamMember->GetName());
+
+			// If TeamMember uses EQSLocation that is too close to the location
+			// this npc is considering, don't pass this point
+			if (DistanceToOtherCloneEQS <= 50.0f || DistanceToOtherClonePos <= 150.0f)
+			{
+				CurrentPointPassed = false;
+				UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | point hasn't passed for TeamMember = %s : either of Distances are too small"),
+					*CloneCharacter->GetName(),
+					*TeamMember->GetName());
+				break;
+			}
+		}
+
+		// // TODO: удалить 
+		// uint32 ThreadId = FPlatformTLS::GetCurrentThreadId();
+		// FString ThreadName = FThreadManager::Get().GetThreadName(ThreadId);
+		// UE_LOG(LogTemp, Log, TEXT("VacantPoint::ThreadName = %s"), *ThreadName);
+		
+
+		if (CurrentPointPassed)
+		{
+			ItrEQSPoint.ForceItemState(EEnvItemStatus::Passed);
+			UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | point %s has passed"),
+					*CloneCharacter->GetName(),
+					*EQSItemLocation.ToString());
 		}
 		else
 		{
-			bool CurrentPointPassed = true;
-			
-			for(auto it = CloneCharacter->TeamMembers.begin();
-				it != CloneCharacter->TeamMembers.end();
-				++it)
-			{
-				const ABaseCloneCharacter* TeamMember = *it;
-				if (TeamMember == nullptr)
-					continue;
-				
-				FVector EQSLocation = TeamMember->GetSelectedEQSLocation();
-				UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s (checking location %s)| TeamMember = %s -> EQSLocation = %s"),
+			ItrEQSPoint.ForceItemState(EEnvItemStatus::Failed);
+			UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | point %s hasn't passed"),
 					*CloneCharacter->GetName(),
-					*EQSItemLocation.ToString(),
-					*TeamMember->GetName(),
-					*EQSLocation.ToString());
-				
-				const float Distance = (EQSItemLocation - EQSLocation).Length();
-				
-				UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | Distance = %f, TeamMember = %s"),
-					*CloneCharacter->GetName(),
-					Distance,
-					*TeamMember->GetName());
-
-				// If TeamMember uses EQSLocation that is too close to the location
-				// this npc is considering, don't pass this point
-				if (Distance <= 50.0f)
-				{
-					CurrentPointPassed = false;
-					UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | point hasn't passed for TeamMember = %s"),
-						*CloneCharacter->GetName(),
-						*TeamMember->GetName());
-					break;
-				}
-			}
-
-			if (CurrentPointPassed)
-				ItrEQSPoint.ForceItemState(EEnvItemStatus::Passed);
-			else
-				ItrEQSPoint.ForceItemState(EEnvItemStatus::Failed);
-			
+					*EQSItemLocation.ToString());
 		}
+		
 	}
 	
 }

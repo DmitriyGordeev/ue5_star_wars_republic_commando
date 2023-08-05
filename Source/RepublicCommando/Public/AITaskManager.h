@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIBaseTask.h"
+#include "HAL/ThreadManager.h"
 #include "AIController.h"
 #include "Templates/Tuple.h"
 #include "AITaskManager.generated.h"
@@ -63,6 +64,15 @@ public:
 	virtual bool IsTickableWhenPaused() const override;
 	virtual TStatId GetStatId() const override;
 	virtual UWorld* GetWorld() const override;
+
+	// UFUNCTION(BlueprintCallable)
+	// static void printThread()
+	// {
+	// 	// TODO: удалить 
+	// 	uint32 ThreadId = FPlatformTLS::GetCurrentThreadId();
+	// 	FString ThreadName = FThreadManager::Get().GetThreadName(ThreadId);
+	// 	UE_LOG(LogTemp, Log, TEXT("printThread::ThreadName = %s"), *ThreadName);
+	// }
 
 
 	// TODO: Move to protected ?
