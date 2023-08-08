@@ -44,18 +44,18 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 	{
 		if (!Tasks[i]->IsReadyToBeWinner(GetCurrentMilliseconds()))
 		{
-			UE_LOG(LogTemp, Log, TEXT("Clone = %s | Task (%s) => IsReadyToBeWinner() = %i"),
-				*AIOwner->GetPawn()->GetName(),
-				*Tasks[i]->GetName(),
-				false);
+			// UE_LOG(LogTemp, Log, TEXT("Clone = %s | Task (%s) => IsReadyToBeWinner() = %i"),
+			// 	*AIOwner->GetPawn()->GetName(),
+			// 	*Tasks[i]->GetName(),
+			// 	false);
 			continue;
 		}
 		
 		Proba = Tasks[i]->ExtractProba(AIOwner.Get(), ContextData);
-		UE_LOG(LogTemp, Log, TEXT("Clone = %s | %s : Proba = %f"),
-			*AIOwner->GetPawn()->GetName(),
-			*Tasks[i]->GetName(),
-			Proba);
+		// UE_LOG(LogTemp, Log, TEXT("Clone = %s | %s : Proba = %f"),
+		// 	*AIOwner->GetPawn()->GetName(),
+		// 	*Tasks[i]->GetName(),
+			// Proba);
 		
 		if (Proba > MaxProbaSoFar)
 		{
@@ -66,11 +66,11 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 		else if (Proba == MaxProbaSoFar)
 		{
 			auto IndexPair = PriorityMatrix.Find(TTuple<int, int>(i, WinnerIndex));
-			UE_LOG(LogTemp, Log, TEXT("Clone = %s | i1 = %i, i2 = %i, IndexPair = %p"),
-				*AIOwner->GetPawn()->GetName(), i, WinnerIndex, IndexPair);
+			// UE_LOG(LogTemp, Log, TEXT("Clone = %s | i1 = %i, i2 = %i, IndexPair = %p"),
+			// 	*AIOwner->GetPawn()->GetName(), i, WinnerIndex, IndexPair);
 			if (IndexPair)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Sorting with PriorityMatrix = %i"), *IndexPair);
+				// UE_LOG(LogTemp, Log, TEXT("Sorting with PriorityMatrix = %i"), *IndexPair);
 				if (*IndexPair < 0)
 					continue;
 				
@@ -83,7 +83,7 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 				// Randomly choose between two tasks if they have equal probabilities
 				if (FMath::FRand() > 0.5f)
 				{
-					UE_LOG(LogTemp, Log, TEXT("Randomly choosing new task"));
+					// UE_LOG(LogTemp, Log, TEXT("Randomly choosing new task"));
 					MaxProbaSoFar = Proba;
 					Winner = Tasks[i];
 					WinnerIndex = i;
@@ -99,13 +99,13 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 	
 	if (!Winner)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Winner is null"));
+		// UE_LOG(LogTemp, Log, TEXT("Winner is null"));
 		return;
 	}
 	
 	if (Winner->GetProba() <= 0.0f)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Clone = %s | Winner->GetProba = 0.0f"), *AIOwner->GetPawn()->GetName());
+		// UE_LOG(LogTemp, Log, TEXT("Clone = %s | Winner->GetProba = 0.0f"), *AIOwner->GetPawn()->GetName());
 		return;
 	}
 	
@@ -124,16 +124,16 @@ void UAITaskManager::Recalculate(bool ShouldIgnoreCooldown)
 		}
 		else if (ActiveTask->IsCompleted() || ActiveTask->IsInterrupted())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Clone = %s | %s.Reset()"),
-				*AIOwner->GetPawn()->GetName(),
-				*ActiveTask->GetName());
+			// UE_LOG(LogTemp, Log, TEXT("Clone = %s | %s.Reset()"),
+			// 	*AIOwner->GetPawn()->GetName(),
+			// 	*ActiveTask->GetName());
 			ActiveTask->Reset();
 		}
 	}
 	
-	UE_LOG(LogTemp, Log, TEXT("Clone = %s | Winner Task Name = %s"),
-		*AIOwner->GetPawn()->GetName(),
-		*Winner->GetName());
+	// UE_LOG(LogTemp, Log, TEXT("Clone = %s | Winner Task Name = %s"),
+	// 	*AIOwner->GetPawn()->GetName(),
+	// 	*Winner->GetName());
 	
 	ActiveTask = Winner;
 	Winner->SelectAsWinner(GetCurrentMilliseconds());
