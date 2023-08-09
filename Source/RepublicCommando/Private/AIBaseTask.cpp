@@ -26,7 +26,7 @@ void UAIBaseTask::Reset()
 	bCompleted = false;
 	bInterrupted = false;
 	bAskedForInterruption = false;
-	UE_LOG(LogTemp, Log, TEXT("Reset() task %s"), *GetName());
+	// UE_LOG(LogTemp, Log, TEXT("Reset() task %s"), *GetName());
 }
 
 bool UAIBaseTask::IsReadyToBeWinner(int32 NewTimeMs) const
@@ -36,7 +36,7 @@ bool UAIBaseTask::IsReadyToBeWinner(int32 NewTimeMs) const
 
 void UAIBaseTask::SelectAsWinner(int32 NewTimeMs)
 {
-	UE_LOG(LogTemp, Log, TEXT("Task %s selected as winner at %i"), *GetName(), NewTimeMs);
+	// UE_LOG(LogTemp, Log, TEXT("Task %s selected as winner at %i"), *GetName(), NewTimeMs);
 	LastWinningTimeMs = NewTimeMs;
 }
 
@@ -85,14 +85,14 @@ void UAIBaseTask::MarkCompleted()
 {
 	bRunning = false;
 	bCompleted = true;
-	UE_LOG(LogTemp, Log, TEXT("%s Task marked as completed"), *GetName());
+	// UE_LOG(LogTemp, Log, TEXT("%s Task marked as completed"), *GetName());
 }
 
 void UAIBaseTask::MarkInterrupted()
 {
 	bRunning = false;
 	bInterrupted = true;
-	UE_LOG(LogTemp, Log, TEXT("%s Task marked as interrupted"), *GetName());
+	// UE_LOG(LogTemp, Log, TEXT("%s Task marked as interrupted"), *GetName());
 	bAskedForInterruption = false;
 }
 
@@ -119,31 +119,31 @@ UWorld* UAIBaseTask::GetWorld() const
 	}
 	
 	// Else return null - the latent action will fail to initialize
-	UE_LOG(LogTemp, Display, TEXT("World is null"));
+	// UE_LOG(LogTemp, Display, TEXT("World is null"));
 	return nullptr;
 }
 
 bool UAIBaseTask::IsRunning() const
 {
-	UE_LOG(LogTemp, Log, TEXT("%s IsRunning() = %i"), *GetName(), bRunning);
+	// UE_LOG(LogTemp, Log, TEXT("%s IsRunning() = %i"), *GetName(), bRunning);
 	return bRunning;
 }
 
 bool UAIBaseTask::IsCompleted() const
 {
-	UE_LOG(LogTemp, Log, TEXT("%s IsCompleted() = %i"), *GetName(), bCompleted);
+	// UE_LOG(LogTemp, Log, TEXT("%s IsCompleted() = %i"), *GetName(), bCompleted);
 	return bCompleted;
 }
 
 bool UAIBaseTask::IsInterrupted() const
 {
-	UE_LOG(LogTemp, Log, TEXT("%s IsInterrupted() = %i"), *GetName(), bInterrupted);
+	// UE_LOG(LogTemp, Log, TEXT("%s IsInterrupted() = %i"), *GetName(), bInterrupted);
 	return bInterrupted;
 }
 
 float UAIBaseTask::GetProba() const
 {
-	UE_LOG(LogTemp, Log, TEXT("%s GetProba() = %f"), *GetName(), Proba);
+	// UE_LOG(LogTemp, Log, TEXT("%s GetProba() = %f"), *GetName(), Proba);
 	return Proba;
 }
 
