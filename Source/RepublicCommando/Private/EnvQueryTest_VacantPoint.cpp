@@ -102,7 +102,7 @@ void UEnvQueryTest_VacantPoint::RunTest(FEnvQueryInstance& QueryInstance) const
 
 			// If TeamMember uses EQSLocation that is too close to the location
 			// this npc is considering, don't pass this point
-			if (DistanceToOtherCloneEQS <= 50.0f || DistanceToOtherClonePos <= 150.0f)
+			if (DistanceToOtherCloneEQS <= 200.0f || DistanceToOtherClonePos <= 300.0f)
 			{
 				CurrentPointPassed = false;
 				// UE_LOG(LogTemp, Log, TEXT("[VacantPoint::RunTest()] %s | point hasn't passed for TeamMember = %s : either of Distances are too small"),

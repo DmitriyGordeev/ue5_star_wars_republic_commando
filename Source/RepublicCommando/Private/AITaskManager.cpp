@@ -177,7 +177,9 @@ void UAITaskManager::Tick(float DeltaTime)
 	if (!ActiveTask)
 		return;
 	
-	// UE_LOG(LogTemp, Log, TEXT("TaskManager tick | active task name = %s"), *ActiveTask->GetName());
+	// UE_LOG(LogTemp, Log, TEXT("TaskManager tick (%s) | active task name = %s"),
+	// 	*AIOwner->GetPawn()->GetName(),
+	// 	*ActiveTask->GetName());
 
 	if (ActiveTask->IsCompleted())
 	{
