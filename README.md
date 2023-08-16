@@ -6,3 +6,6 @@ Level design is still a work in progress, current level serves as demo - a polyg
 testing logic of the game and NPC
 
 ![rc_screenshot.png](https://github.com/DmitriyGordeev/ue5_star_wars_republic_commando/blob/master/rc_screenshot.png)
+
+You can find packaged version here:
+https://drive.google.com/file/d/1G2gfetBvvb4YVHfBVKilUwdXmQy8VjBH/view?usp=sharing
