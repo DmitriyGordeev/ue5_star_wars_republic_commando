@@ -22,19 +22,24 @@ class REPUBLICCOMMANDO_API UAIBaseTask : public UObject, public FTickableGameObj
 	GENERATED_BODY()
 	
 public:
-	
+
+	/* Executes when Task starts */
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnExecute(AAIController* Controller);
-
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnTick(AAIController* Controller);
 
+	/* Executes when TaskManager asked this task to Interrupt,
+	 * This is a task's responsibility to respond on this
+	 * request and execute MarkInterrupted() */
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInterruptedResponse(AAIController* Controller);
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void Start();
-	
+
+	/* Calculates task's probability (relevancy) */
 	UFUNCTION(BlueprintNativeEvent)
 	float FindProba(AAIController* Controller, UObject* ContextData);
 
@@ -42,7 +47,7 @@ public:
 	 * this function forces to set Proba field after calculation, which BP user can forget to do */
 	UFUNCTION()
 	float ExtractProba(AAIController* Controller, UObject* ContextData);
-
+	
 	UFUNCTION()
 	void AskInterrupt(AAIController* Controller);
 	
@@ -51,9 +56,11 @@ public:
 	virtual bool IsTickableInEditor() const override;
 	virtual bool IsTickableWhenPaused() const override;
 
+	/* Tells TaskManager that this task is finished so a new task can be chosen */
 	UFUNCTION(BlueprintCallable)
 	virtual void MarkCompleted();
 
+	/* Tells TaskManager that this task is interrupted so a new task can be chosen */
 	UFUNCTION(BlueprintCallable)
 	virtual void MarkInterrupted();
 
@@ -71,7 +78,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	AAIController* GetAIController();
-
+	
 	virtual void Reset();
 
 	/** Should we stop and restart this task if
@@ -86,8 +93,6 @@ public:
 	bool IsReadyToBeWinner(int32 NewTimeMs) const;
 	
 	void SelectAsWinner(int32 NewTimeMs);
-
-	
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)

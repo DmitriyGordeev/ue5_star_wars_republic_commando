@@ -22,8 +22,6 @@ class REPUBLICCOMMANDO_API UAITaskManager : public UObject, public FTickableGame
 
 public:
 	
-	// нужно было включить AIModule в *.Build.cs
-	// иначе доступ к AAIController вызовет 'unresolved external symbol error'
 	UPROPERTY(BlueprintReadWrite)
 	TWeakObjectPtr<AAIController> AIOwner;
 	
@@ -39,11 +37,6 @@ public:
 	 * if task hasn't responded - it's continue running until marked Completed */
 	UFUNCTION(BlueprintCallable)
 	virtual bool TryInterruptActiveTask();
-	
-	// virtual void Tick();
-	
-	// OnBeforeTaskChange
-	// OnAfterTaskChange
 
 	/** Adds task to TaskManager
 	 * returns index of just added task in the array of tasks,
@@ -52,11 +45,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UPARAM(DisplayName = "TaskIndex") int AddTask(UAIBaseTask* Task);
 	
-	// TODO: move to protected
-	UPROPERTY(BlueprintReadWrite)
-	UAIBaseTask* ActiveTask;
-
-
 	// -------- FTickableGameObject functions --------------
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsTickable() const override;
@@ -64,18 +52,7 @@ public:
 	virtual bool IsTickableWhenPaused() const override;
 	virtual TStatId GetStatId() const override;
 	virtual UWorld* GetWorld() const override;
-
-	// UFUNCTION(BlueprintCallable)
-	// static void printThread()
-	// {
-	// 	// TODO: удалить 
-	// 	uint32 ThreadId = FPlatformTLS::GetCurrentThreadId();
-	// 	FString ThreadName = FThreadManager::Get().GetThreadName(ThreadId);
-	// 	UE_LOG(LogTemp, Log, TEXT("printThread::ThreadName = %s"), *ThreadName);
-	// }
-
-
-	// TODO: Move to protected ?
+	
 	UPROPERTY(BlueprintReadWrite)
 	UObject* ContextData;
 
@@ -93,21 +70,29 @@ public:
 	/** Defines how often Recalculate() function can fire */
 	UPROPERTY(BlueprintReadWrite, meta=(ClampMin=0, UIMin=0))
 	int32 TaskRecalculationFrequencyMs {1000};
-
-// protected:
-	// UAIBaseTask* IdentifyWinner();
 	
 protected:
+	/* Currently active task seleced for execution */
+	UPROPERTY(BlueprintReadWrite)
+	UAIBaseTask* ActiveTask;
+
+	/* array of tasks to execute */
 	UPROPERTY(BlueprintReadWrite)
 	TArray<UAIBaseTask*> Tasks;
 	
 	bool bStarted {false};
-
+	
 	UPROPERTY(BlueprintReadOnly)
 	bool bWaitingForActiveTaskInterrupted {false};
 
-	// TODO: пояснить
+	/* pair-wise priority for each pair of tasks
+	 * if tasks A and B have equal probabilities,
+	 * then we can specify which one should be executed (has more priority)
+	 * key: Tuple of (index of task A, index of task B)
+	 * value: => 0 meaning A has more priority than B and vice-versa if < 0
+	 */
 	TMap<TTuple<int, int>, int> PriorityMatrix;
-	
+
+	/* Last time when Recalculate() function fired */
 	int32 LastRecalcUnixTimeMs {0};
 };
