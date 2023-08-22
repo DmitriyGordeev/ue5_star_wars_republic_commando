@@ -39,26 +39,11 @@ void UEnvQueryTest_VacantPoint::RunTest(FEnvQueryInstance& QueryInstance) const
 	// If it's not ABaseCloneCharacter we return
 	ABaseCloneCharacter* CloneCharacter = Cast<ABaseCloneCharacter>(QueryOwner);
 	if (!CloneCharacter)
-	{
 		return;
-	}
-	// if (CloneCharacter)
-	// {
-	// 	// UE_LOG(LogTemp, Display, TEXT("[VacantPoint::RunTest()] Character.GetName() = %s"), *CloneCharacter->GetName());
-	// }
-	// else
-	// {
-	// 	// UE_LOG(LogTemp, Display, TEXT("[VacantPoint::RunTest()] CloneCharacter is not valid"));
-	// 	return;
-	// }
-	
 	
 	TArray<FVector> ContextLocations;
 	if (!QueryInstance.PrepareContext(Querier, ContextLocations))
-	{
 		return;
-	}
-
 	
 	FScopeLock Lock(Guard.Get());
 	
