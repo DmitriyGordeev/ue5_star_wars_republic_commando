@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -22,31 +22,29 @@ class REPUBLICCOMMANDO_API UAIBaseTask : public UObject, public FTickableGameObj
 	GENERATED_BODY()
 	
 public:
-
-	/* Executes when Task starts */
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnExecute(AAIController* Controller);
-	
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnTick(AAIController* Controller);
 
-	/* Executes when TaskManager asked this task to Interrupt,
-	 * This is a task's responsibility to respond on this
-	 * request and execute MarkInterrupted() */
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInterruptedResponse(AAIController* Controller);
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void Start();
-
-	/* Calculates task's probability (relevancy) */
+	
 	UFUNCTION(BlueprintNativeEvent)
-	float FindProba(AAIController* Controller, UObject* ContextData);
+	float FindProba(AAIController* Controller);
 
+	UFUNCTION(BlueprintNativeEvent)
+	bool ShouldBeIgnored(AAIController* Controller);
+	
 	/** Simple wrapper-setter around blueprint-implementable FindProba()
 	 * this function forces to set Proba field after calculation, which BP user can forget to do */
 	UFUNCTION()
-	float ExtractProba(AAIController* Controller, UObject* ContextData);
+	float ExtractProba(AAIController* Controller);
 	
 	UFUNCTION()
 	void AskInterrupt(AAIController* Controller);
@@ -56,11 +54,9 @@ public:
 	virtual bool IsTickableInEditor() const override;
 	virtual bool IsTickableWhenPaused() const override;
 
-	/* Tells TaskManager that this task is finished so a new task can be chosen */
 	UFUNCTION(BlueprintCallable)
 	virtual void MarkCompleted();
 
-	/* Tells TaskManager that this task is interrupted so a new task can be chosen */
 	UFUNCTION(BlueprintCallable)
 	virtual void MarkInterrupted();
 
@@ -71,14 +67,14 @@ public:
 	virtual bool IsCompleted() const;
 	virtual bool IsInterrupted() const;
 
-	virtual float GetProba() const;
+	virtual float GetProba() const { return Proba; }
 
 	UFUNCTION()
 	void SetTaskManager(UAITaskManager* TaskManager);
 	
 	UFUNCTION(BlueprintCallable)
 	AAIController* GetAIController();
-	
+
 	virtual void Reset();
 
 	/** Should we stop and restart this task if
@@ -87,6 +83,12 @@ public:
 	 * */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool bShouldRestartIfWinnerAgain {true};
+
+	UFUNCTION()
+	void SetConsumedReaction(bool Consumed);
+
+	UFUNCTION(BlueprintCallable)
+	bool GetConsumedReaction() const { return ConsumedReaction; }
 
 	/** Imposes cooldown on the task -
 	 * prevents from picking the same Task too often if necessary */
@@ -110,7 +112,10 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bAskedForInterruption {false};
-	
+
+	UPROPERTY(BlueprintReadOnly)
+	bool ConsumedReaction {false};
+
 	/** How often can be picked as a winner, specified in milliseconds */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ClampMin=0, UIMin=0))
 	int32 WinnerCooldownTimeMs {0};

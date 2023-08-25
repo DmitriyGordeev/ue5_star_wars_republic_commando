@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AIBaseTask.h"
 #include "AITaskManager.h"
@@ -10,14 +10,20 @@
 void UAIBaseTask::Start()
 {
 	Reset();
+	UE_LOG(LogTemp, Log, TEXT("UAIBaseTask::Start()"));
 	bRunning = true;
 	OnExecute(GetAIController());
 }
 
-float UAIBaseTask::FindProba_Implementation(AAIController* Controller, UObject* ContextData)
+float UAIBaseTask::FindProba_Implementation(AAIController* Controller)
 {
 	Proba = 1.0f;
 	return Proba;
+}
+
+bool UAIBaseTask::ShouldBeIgnored_Implementation(AAIController* Controller)
+{
+	return false;
 }
 
 void UAIBaseTask::Reset()
@@ -26,23 +32,17 @@ void UAIBaseTask::Reset()
 	bCompleted = false;
 	bInterrupted = false;
 	bAskedForInterruption = false;
-	// UE_LOG(LogTemp, Log, TEXT("Reset() task %s"), *GetName());
+	UE_LOG(LogTemp, Log, TEXT("Reset() task %s"), *GetName());
 }
 
-bool UAIBaseTask::IsReadyToBeWinner(int32 NewTimeMs) const
+void UAIBaseTask::SetConsumedReaction(bool Consumed)
 {
-	return NewTimeMs - LastWinningTimeMs > WinnerCooldownTimeMs;
+	ConsumedReaction = Consumed;
 }
 
-void UAIBaseTask::SelectAsWinner(int32 NewTimeMs)
+float UAIBaseTask::ExtractProba(AAIController* Controller)
 {
-	// UE_LOG(LogTemp, Log, TEXT("Task %s selected as winner at %i"), *GetName(), NewTimeMs);
-	LastWinningTimeMs = NewTimeMs;
-}
-
-float UAIBaseTask::ExtractProba(AAIController* Controller, UObject* ContextData)
-{
-	Proba = FindProba(Controller, ContextData);
+	Proba = FindProba(Controller);
 	Proba = Proba > 1.0f ? 1.0f : Proba;
 	Proba = Proba < 0.0f ? 0.0f : Proba;
 	return Proba;
@@ -50,12 +50,14 @@ float UAIBaseTask::ExtractProba(AAIController* Controller, UObject* ContextData)
 
 void UAIBaseTask::AskInterrupt(AAIController* Controller)
 {
+	UE_LOG(LogTemp, Log, TEXT("Task %s -> AskInterrupt()"), *GetName());
 	bAskedForInterruption = true;
 	OnInterruptedResponse(Controller);
 }
 
 void UAIBaseTask::Tick(float DeltaTime)
 {
+	UE_LOG(LogTemp, Log, TEXT("UAIBaseTask Tick"));
 	// TODO: if (!Interrupted() and !Completed()) ?
 	OnTick(GetAIController());
 }
@@ -83,18 +85,20 @@ bool UAIBaseTask::IsTickableWhenPaused() const
 
 void UAIBaseTask::MarkCompleted()
 {
-	bRunning = false;
 	bCompleted = true;
-	// UE_LOG(LogTemp, Log, TEXT("%s Task marked as completed"), *GetName());
+	bRunning = false;
+	UE_LOG(LogTemp, Log, TEXT("Task marked as completed"));
 }
+
 
 void UAIBaseTask::MarkInterrupted()
 {
-	bRunning = false;
 	bInterrupted = true;
-	// UE_LOG(LogTemp, Log, TEXT("%s Task marked as interrupted"), *GetName());
+	bRunning = false;	// todo: убрать флаг bRunning
 	bAskedForInterruption = false;
+	UE_LOG(LogTemp, Log, TEXT("Task marked as interrupted"));
 }
+
 
 TStatId UAIBaseTask::GetStatId() const
 {
@@ -118,33 +122,26 @@ UWorld* UAIBaseTask::GetWorld() const
 		}
 	}
 	
-	// Else return null - the latent action will fail to initialize
-	// UE_LOG(LogTemp, Display, TEXT("World is null"));
 	return nullptr;
 }
 
 bool UAIBaseTask::IsRunning() const
 {
-	// UE_LOG(LogTemp, Log, TEXT("%s IsRunning() = %i"), *GetName(), bRunning);
+	UE_LOG(LogTemp, Log, TEXT("%s IsRunning() = %i"), *GetName(), bRunning);
 	return bRunning;
 }
 
+
 bool UAIBaseTask::IsCompleted() const
 {
-	// UE_LOG(LogTemp, Log, TEXT("%s IsCompleted() = %i"), *GetName(), bCompleted);
+	UE_LOG(LogTemp, Log, TEXT("IsCompleted() = %i"), bCompleted);
 	return bCompleted;
 }
 
 bool UAIBaseTask::IsInterrupted() const
 {
-	// UE_LOG(LogTemp, Log, TEXT("%s IsInterrupted() = %i"), *GetName(), bInterrupted);
+	UE_LOG(LogTemp, Log, TEXT("IsInterrupted() = %i"), bInterrupted);
 	return bInterrupted;
-}
-
-float UAIBaseTask::GetProba() const
-{
-	// UE_LOG(LogTemp, Log, TEXT("%s GetProba() = %f"), *GetName(), Proba);
-	return Proba;
 }
 
 void UAIBaseTask::SetTaskManager(UAITaskManager* OwnerTaskManager)
@@ -160,3 +157,13 @@ AAIController* UAIBaseTask::GetAIController()
 	return TaskManager->AIOwner.Get();
 }
 
+
+bool UAIBaseTask::IsReadyToBeWinner(int32 NewTimeMs) const
+{
+	return NewTimeMs - LastWinningTimeMs > WinnerCooldownTimeMs;
+}
+
+void UAIBaseTask::SelectAsWinner(int32 NewTimeMs)
+{
+	LastWinningTimeMs = NewTimeMs;
+}
