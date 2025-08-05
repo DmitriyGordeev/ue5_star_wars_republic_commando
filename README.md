@@ -8,6 +8,6 @@ testing logic of the game and NPC
 You can find packaged version here:
 https://drive.google.com/file/d/1G2gfetBvvb4YVHfBVKilUwdXmQy8VjBH/view?usp=sharing
 
-![rc_screenshot.png](https://github.com/DmitriyGordeev/ue5_star_wars_republic_commando/blob/master/rc_screenshot.png)
+![swrc_trim.gif](https://github.com/DmitriyGordeev/ue5_star_wars_republic_commando/blob/master/swrc_trim.gif)
 
 
